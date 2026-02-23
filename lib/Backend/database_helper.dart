@@ -26,11 +26,28 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE users (
+      CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL
+        name TEXT,
+        number TEXT,
+        type TEXT,
+        amount REAL,
+        reference TEXT,
+        date TEXT,
+        claim_time TEXT,
+        status TEXT,
+        created_at TEXT
       )
     ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getTransactions() async {
+    final db = await instance.database;
+    return await db.query('transactions', orderBy: 'date DESC');
+  }
+
+  Future<int> insertTransaction(Map<String, dynamic> row) async {
+    final db = await instance.database;
+    return await db.insert('transactions', row);
   }
 }
