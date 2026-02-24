@@ -10,7 +10,8 @@ class NewTransactionScreen extends StatefulWidget {
 
 class _NewTransactionScreenState extends State<NewTransactionScreen> {
   String extractedText = ''; // Holds the scanned text
-
+  final TextEditingController referenceController = TextEditingController();
+  
   Future<void> captureAndScanImage()async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
@@ -26,9 +27,27 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
 
     await textRecognizer.close();
     
+      String extractReferenceNumber(String text) {
+        final regex = RegExp(
+          r'Ref\.?\s*No\.?\s*([0-9 ]+)',
+          caseSensitive: false,
+        );
+
+        final match = regex.firstMatch(text);
+
+        if (match == null) return '';
+
+        // Normalize: remove spaces
+        return match.group(1)!.replaceAll(' ', '').trim();
+      }
+    final reference = extractReferenceNumber(recognizedText.text);
+
     setState(() {
-      extractedText = recognizedText.text;
+      referenceController.text = reference;
     });
+    print('----- OCR RAW TEXT START -----');
+    print(recognizedText.text);
+    print('----- OCR RAW TEXT END -----');
   }
   Future<void> pickAndScanImage() async {
     final picker = ImagePicker();
@@ -43,10 +62,27 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
         await textRecognizer.processImage(inputImage);
 
     await textRecognizer.close();
+      String extractReferenceNumber(String text) {
+        final regex = RegExp(
+          r'Ref\.?\s*No\.?\s*([0-9 ]+)',
+          caseSensitive: false,
+        );
+
+        final match = regex.firstMatch(text);
+
+        if (match == null) return '';
+
+        // Normalize: remove spaces
+        return match.group(1)!.replaceAll(' ', '').trim();
+      }
+    final reference = extractReferenceNumber(recognizedText.text);
 
     setState(() {
-      extractedText = recognizedText.text; // Update the displayed text
+      referenceController.text = reference;
     });
+    print('----- OCR RAW TEXT START -----');
+    print(recognizedText.text);
+    print('----- OCR RAW TEXT END -----');
   }
 
   @override
@@ -70,26 +106,13 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Display the scanned text inside a scrollable box
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    extractedText.isEmpty
-                        ? 'Scanned text will appear here'
-                        : extractedText,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
+            TextField(
+            controller: referenceController,
+            decoration: const InputDecoration(
+            labelText: 'Reference Number',
+            border: OutlineInputBorder(),
             ),
+          ),
           ],
         ),
       ),
