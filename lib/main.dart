@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '/Frontend/transaction_screen.dart';
+import '/Frontend/new_transaction_screen.dart';
 import '/Backend/database_helper.dart';
 
 void main() {
@@ -86,6 +87,17 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text('Generate Random Transaction'),
             ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+            onPressed: (){
+            Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NewTransactionScreen()),
+            );
+            },
+            child: const Text("New Transaction")),
+            
+          
           ],
         ),
       ),
