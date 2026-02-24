@@ -29,7 +29,7 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
     
       String extractReferenceNumber(String text) {
         final regex = RegExp(
-          r'Ref\.?\s*No\.?\s*([0-9 ]+)',
+          r'(?:Ref\.?\s*No\.?|Reference\s*Number)\s*([0-9 ]+)',
           caseSensitive: false,
         );
 
@@ -64,7 +64,7 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
     await textRecognizer.close();
       String extractReferenceNumber(String text) {
         final regex = RegExp(
-          r'Ref\.?\s*No\.?\s*([0-9 ]+)',
+          r'(?:Ref\.?\s*No\.?|Reference\s*Number)\s*([0-9 ]+)',
           caseSensitive: false,
         );
 
