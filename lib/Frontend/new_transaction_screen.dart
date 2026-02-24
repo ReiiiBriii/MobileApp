@@ -11,6 +11,25 @@ class NewTransactionScreen extends StatefulWidget {
 class _NewTransactionScreenState extends State<NewTransactionScreen> {
   String extractedText = ''; // Holds the scanned text
 
+  Future<void> captureAndScanImage()async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera);
+
+    if (image == null) return;
+
+    final inputImage = InputImage.fromFile(File(image.path));
+    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+    final RecognizedText recognizedText = 
+    await textRecognizer.processImage(inputImage);
+
+    await textRecognizer.close();
+    
+    setState(() {
+      extractedText = recognizedText.text;
+    });
+  }
   Future<void> pickAndScanImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -38,9 +57,18 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: pickAndScanImage,
-              child: const Text('Pick Image to Scan'),
+            Column(
+              children: [
+                ElevatedButton(
+                  onPressed: pickAndScanImage,
+                  child: const Text('Pick Image from Gallery'),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: captureAndScanImage,
+                  child: const Text('Capture Photo'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             // Display the scanned text inside a scrollable box
