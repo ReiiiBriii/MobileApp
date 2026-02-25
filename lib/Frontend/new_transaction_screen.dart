@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../Backend/text_decoder.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class NewTransactionScreen extends StatefulWidget {
@@ -11,42 +12,38 @@ class NewTransactionScreen extends StatefulWidget {
 class _NewTransactionScreenState extends State<NewTransactionScreen> {
   String extractedText = ''; // Holds the scanned text
   final TextEditingController referenceController = TextEditingController();
+  final TextEditingController senderController = TextEditingController();
+  final TextEditingController receiverController = TextEditingController();
+  final TextEditingController dateTimeController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+
   
-  Future<void> captureAndScanImage()async {
+    Future<void> captureAndScanImage() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.camera);
-
+    final XFile? image =
+        await picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
-
     final inputImage = InputImage.fromFile(File(image.path));
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-
-    final RecognizedText recognizedText = 
+    final textRecognizer =
+        TextRecognizer(script: TextRecognitionScript.latin);
+    final RecognizedText recognizedText =
     await textRecognizer.processImage(inputImage);
-
     await textRecognizer.close();
-    
-      String extractReferenceNumber(String text) {
-        final regex = RegExp(
-          r'(?:Ref\.?\s*No\.?|Reference\s*Number)\s*([0-9 ]+)',
-          caseSensitive: false,
-        );
-
-        final match = regex.firstMatch(text);
-
-        if (match == null) return '';
-
-        // Normalize: remove spaces
-        return match.group(1)!.replaceAll(' ', '').trim();
-      }
-    final reference = extractReferenceNumber(recognizedText.text);
-
+    final rawText = recognizedText.text;
+    final referenceNumber = extractReference(rawText);
+    final parties = extractTransferParties(rawText);
+    final dateTime = extractDateTime(rawText);
+    final amount = extractAmount(rawText);
     setState(() {
-      referenceController.text = reference;
+      extractedText = rawText;
+      senderController.text = parties?['sender'] ?? '';
+      receiverController.text = parties?['receiver'] ?? '';
+      referenceController.text = referenceNumber ?? '';
+      dateTimeController.text = dateTime ?? '';
+      amountController.text = amount ?? '';
     });
     print('----- OCR RAW TEXT START -----');
-    print(recognizedText.text);
+    print(rawText);
     print('----- OCR RAW TEXT END -----');
   }
   Future<void> pickAndScanImage() async {
@@ -54,34 +51,27 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
-
     final inputImage = InputImage.fromFile(File(image.path));
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-
+    final textRecognizer =
+        TextRecognizer(script: TextRecognitionScript.latin);
     final RecognizedText recognizedText =
-        await textRecognizer.processImage(inputImage);
-
+    await textRecognizer.processImage(inputImage);
     await textRecognizer.close();
-      String extractReferenceNumber(String text) {
-        final regex = RegExp(
-          r'(?:Ref\.?\s*No\.?|Reference\s*Number)\s*([0-9 ]+)',
-          caseSensitive: false,
-        );
-
-        final match = regex.firstMatch(text);
-
-        if (match == null) return '';
-
-        // Normalize: remove spaces
-        return match.group(1)!.replaceAll(' ', '').trim();
-      }
-    final reference = extractReferenceNumber(recognizedText.text);
-
+    final rawText = recognizedText.text;
+    final referenceNumber = extractReference(rawText);
+    final parties = extractTransferParties(rawText);
+    final dateTime = extractDateTime(rawText);
+    final amount = extractAmount(rawText);
     setState(() {
-      referenceController.text = reference;
+      extractedText = rawText;
+      senderController.text = parties?['sender'] ?? '';
+      receiverController.text = parties?['receiver'] ?? '';
+      referenceController.text = referenceNumber ?? '';
+      dateTimeController.text = dateTime ?? '';
+      amountController.text = amount ?? '';
     });
     print('----- OCR RAW TEXT START -----');
-    print(recognizedText.text);
+    print(rawText);
     print('----- OCR RAW TEXT END -----');
   }
 
@@ -107,12 +97,45 @@ class _NewTransactionScreenState extends State<NewTransactionScreen> {
               ],
             ),
             TextField(
+            controller: senderController,
+            decoration: const InputDecoration(
+            labelText: 'Received From:',
+            border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: receiverController,
+            decoration: const InputDecoration(
+            labelText: 'Received By:',
+            border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: amountController,
+            decoration: const InputDecoration(
+            labelText: 'Amount',
+            border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: dateTimeController,
+            decoration: const InputDecoration(
+            labelText: 'Date & Time',
+            border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
             controller: referenceController,
             decoration: const InputDecoration(
             labelText: 'Reference Number',
             border: OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 10),
           ],
         ),
       ),
